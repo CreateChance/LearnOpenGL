@@ -21,5 +21,11 @@
     <ClCompile Include="src\Learn02.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\Learn03.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Learn04.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

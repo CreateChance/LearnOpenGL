@@ -147,6 +147,8 @@
   <ItemGroup>
     <ClCompile Include="src\Learn01.cpp" />
     <ClCompile Include="src\Learn02.cpp" />
+    <ClCompile Include="src\Learn03.cpp" />
+    <ClCompile Include="src\Learn04.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
