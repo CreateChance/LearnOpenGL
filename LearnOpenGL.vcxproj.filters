@@ -27,5 +27,11 @@
     <ClCompile Include="src\Learn04.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\Learn05.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Learn06.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

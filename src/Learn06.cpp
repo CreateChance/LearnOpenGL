@@ -4,6 +4,12 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+/**
+ * 尝试绘制一个正方形，通过两个三角形完成
+ * 这是 Learn05 中方案的一个改进版本，通过 index buffer 的方式来完成，避免过多的重复数据造成的显存浪费
+ *
+ */
+
 static unsigned int compileShader(unsigned int type, const std::string& source) {
 	// create a new shader object.
 	unsigned int id = glCreateShader(type);
@@ -20,7 +26,7 @@ static unsigned int compileShader(unsigned int type, const std::string& source) 
 	if (result == GL_FALSE) {
 		int length;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-		char* message = (char* )alloca(length * sizeof(char));
+		char* message = (char*)alloca(length * sizeof(char));
 		glGetShaderInfoLog(id, length, &length, message);
 		std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader" << std::endl;
 		std::cout << message << std::endl;
@@ -49,7 +55,7 @@ static unsigned int createProgram(const std::string& vertexShader, const std::st
 	return program;
 }
 
-int main04(void) {
+int main(void) {
 	GLFWwindow* window;
 
 	if (!glfwInit()) {
@@ -72,18 +78,37 @@ int main04(void) {
 	std::cout << glGetString(GL_VERSION) << std::endl;
 
 	// define a buffer.
-	float postions[6] = {
+	// 注意观察，这里的数据我们已经去掉了重复顶点数据，避免内存浪费
+	float postions[8] = {
 		-0.5f, -0.5f,
-		 0.0f,  0.5f,
-		 0.5f, -0.5f
+		 0.5f, -0.5f,
+		 0.5f,  0.5f,
+		-0.5f,  0.5f
 	};
+
+	// 通过定义顶点绘制顺序，来重复利用上面的顶点数据，避免浪费显存
+	// TODO: 貌似浪费了很多的显存？这里的数据也是需要上传到 GPU 存储的啊？
+	unsigned int indices[] = {
+		0, 1, 2,
+		2, 3, 0
+	};
+
 	unsigned int buffer;
 	// only one buffer we neeed.
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), postions, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), postions, GL_STATIC_DRAW);
+
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+
+	// index buffer.
+	// 通过指定 index buffer object 来指定我们要绘制的三角形顶点顺序
+	unsigned int ibo;
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER , ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
 
 	std::string vertexShader =
 		"#version 330 core\n"
@@ -102,7 +127,7 @@ int main04(void) {
 		"\n"
 		"void main()\n"
 		"{\n"
-		"	color = vec4(1.0, 0.0, 0.0, 0.0);\n"
+		"	color = vec4(0.0, 1.0, 0.0, 0.0);\n"
 		"}\n";
 	unsigned int program = createProgram(vertexShader, fragmentShader);
 	glUseProgram(program);
@@ -110,8 +135,8 @@ int main04(void) {
 	while (!glfwWindowShouldClose(window)) {
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-
+		// 这里我们需要通过这个函数来绘制，不再是 glDrawArrays 了，这里并不需要指定 indices 指针，因为我们上面已经 bind 过 element buffer array 了
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 		glfwSwapBuffers(window);
 
