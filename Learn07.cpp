@@ -5,10 +5,27 @@
 #include <iostream>
 
 /**
- * 尝试绘制一个正方形，通过两个三角形完成
- * 这是 Learn05 中方案的一个改进版本，通过 index buffer 的方式来完成，避免过多的重复数据造成的显存浪费
+ * 通过封装一个宏来自动化处理 GL 错误信息
  *
  */
+
+#define ASSERT(x) if (!(x)) __debugbreak();
+#define GLCall(x) GLClearError();\
+    x;\
+    ASSERT(GLLogCall(#x, __FILE__, __LINE__))
+
+static void GLClearError() {
+	// get all error now.
+	while (glGetError() != GL_NO_ERROR);
+}
+
+static bool GLLogCall(const char* function, const char* file, const int line) {
+	while (GLenum error = glGetError()) {
+		std::cout << "[OpenGL Error] (" << error << "): " << function << " " << file << ":" << line << std::endl;
+		return false;
+	}
+	return true;
+}
 
 static unsigned int compileShader(unsigned int type, const std::string& source) {
 	// create a new shader object.
@@ -55,7 +72,7 @@ static unsigned int createProgram(const std::string& vertexShader, const std::st
 	return program;
 }
 
-int main06(void) {
+int main(void) {
 	GLFWwindow* window;
 
 	if (!glfwInit()) {
@@ -106,7 +123,7 @@ int main06(void) {
 	// 通过指定 index buffer object 来指定我们要绘制的三角形顶点顺序
 	unsigned int ibo;
 	glGenBuffers(1, &ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER , ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 
@@ -136,7 +153,7 @@ int main06(void) {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// 这里我们需要通过这个函数来绘制，不再是 glDrawArrays 了，这里并不需要指定 indices 指针，因为我们上面已经 bind 过 element buffer array 了
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
 		glfwSwapBuffers(window);
 
